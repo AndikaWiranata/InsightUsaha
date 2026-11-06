@@ -1,0 +1,172 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+/* Tema gelap dikendalikan atribut data-theme (tombol tema) dan setelan perangkat, lihat DESIGN.md. */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/*
+ * Token warna "buku kas warung" (DESIGN.md). Nilai diganti per tema di :root, Tailwind memakai var().
+ * Kontras semua pasangan teks dicek dengan tools/contrast.py (WCAG AA).
+ */
+@theme {
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+    --color-paper: var(--c-paper);
+    --color-surface: var(--c-surface);
+    --color-ink: var(--c-ink);
+    --color-ink-2: var(--c-ink-2);
+    --color-muted: var(--c-muted);
+    --color-line: var(--c-line);
+    --color-field: var(--c-field);
+    --color-brand: var(--c-brand);
+    --color-stabilo: var(--c-stabilo);
+    --color-good: var(--c-good);
+    --color-good-soft: var(--c-good-soft);
+    --color-good-ink: var(--c-good-ink);
+    --color-bad: var(--c-bad);
+    --color-bad-soft: var(--c-bad-soft);
+    --color-bad-ink: var(--c-bad-ink);
+    --color-warn-soft: var(--c-warn-soft);
+    --color-warn-ink: var(--c-warn-ink);
+
+    --radius-control: 6px;
+    --radius-card: 10px;
+}
+
+:root {
+    color-scheme: light;
+    --c-paper: #F6F1E7;
+    --c-surface: #FFFCF6;
+    --c-ink: #221C17;
+    --c-ink-2: #4A4037;
+    --c-muted: #675D52;
+    --c-line: #DDD3C3;
+    --c-field: #8C8072;
+    --c-brand: #7A4521;
+    --c-stabilo: #F4C542;
+    --c-good: #2D6A2F;
+    --c-good-soft: #E3EFDC;
+    --c-good-ink: #22551F;
+    --c-bad: #A3341C;
+    --c-bad-soft: #F6E0D8;
+    --c-bad-ink: #7F2614;
+    --c-warn-soft: #F7EBC8;
+    --c-warn-ink: #664700;
+    --c-grid: #E6DDCF;
+    /* Skala heatmap satu warna (sienna), terang ke gelap; teks per langkah lulus 4.5:1. */
+    --heat-1: #F3E6D3; --heat-2: #E8CFAE; --heat-3: #D9B184; --heat-4: #C38E5A; --heat-5: #975F2F; --heat-6: #7D4C22; --heat-7: #55321A;
+    --heat-ink-1: #221C17; --heat-ink-2: #221C17; --heat-ink-3: #221C17; --heat-ink-4: #221C17; --heat-ink-5: #FFFCF6; --heat-ink-6: #FFFCF6; --heat-ink-7: #FFFCF6;
+}
+
+:root[data-theme='dark'] {
+    color-scheme: dark;
+    --c-paper: #15120F;
+    --c-surface: #1E1A16;
+    --c-ink: #F3EDE4;
+    --c-ink-2: #D3C9BB;
+    --c-muted: #ABA092;
+    --c-line: #3A322A;
+    --c-field: #857868;
+    --c-brand: #E0A46B;
+    --c-stabilo: #7A5A12;
+    --c-good: #86C686;
+    --c-good-soft: #1E3220;
+    --c-good-ink: #B3E0AF;
+    --c-bad: #F29379;
+    --c-bad-soft: #3D1F16;
+    --c-bad-ink: #F7BCA9;
+    --c-warn-soft: #3A2F12;
+    --c-warn-ink: #EBD28F;
+    --c-grid: #2E2822;
+    --heat-1: #2E261F; --heat-2: #4B3828; --heat-3: #6B4B2D; --heat-4: #8E6236; --heat-5: #B47E46; --heat-6: #D69D5E; --heat-7: #F0C48B;
+    --heat-ink-1: #F3EDE4; --heat-ink-2: #F3EDE4; --heat-ink-3: #F3EDE4; --heat-ink-4: #F3EDE4; --heat-ink-5: #15120F; --heat-ink-6: #15120F; --heat-ink-7: #15120F;
+}
+
+@layer base {
+    html { -webkit-tap-highlight-color: transparent; }
+    body { @apply bg-paper text-ink antialiased; font-feature-settings: 'ss01'; }
+    .tabular { font-variant-numeric: tabular-nums; }
+
+    /* Anak grid boleh menyusut agar tabel lebar tidak membuat halaman menggulir ke samping di HP. */
+    .grid > * { min-width: 0; }
+
+    /* R-39: semua kontrol aktif menunjukkan bisa diklik. */
+    a[href], button:not(:disabled), summary, select:not(:disabled), label[for],
+    input[type='checkbox']:not(:disabled), input[type='radio']:not(:disabled), input[type='file']:not(:disabled) {
+        cursor: pointer;
+    }
+    button:disabled, select:disabled, input:disabled { cursor: not-allowed; }
+
+    /* R-32: indikator fokus jelas di kedua tema (cincin tinta + celah kertas). */
+    :focus-visible {
+        outline: 2px solid var(--c-ink);
+        outline-offset: 2px;
+        border-radius: 4px;
+    }
+
+    a:not([class]) { @apply font-semibold text-brand underline decoration-1 underline-offset-2 hover:decoration-2; }
+
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+    }
+}
+
+/* Motif identitas: sapuan stabilo di belakang angka/frasa paling penting (maks. 1-2 per layar). */
+@utility stabilo {
+    background-image: linear-gradient(transparent 52%, var(--c-stabilo) 52%, var(--c-stabilo) 90%, transparent 90%);
+    padding-inline: 0.12em;
+    margin-inline: -0.12em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+}
+
+/* Elevasi lewat garis, bukan bayangan (DESIGN.md). */
+@utility card { @apply rounded-card border border-line bg-surface p-4 sm:p-5; }
+
+@utility btn {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-control px-4 text-sm font-semibold transition-colors disabled:opacity-60;
+}
+/* Tombol utama memakai tinta, supaya stabilo tetap satu-satunya aksen. */
+@utility btn-primary {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-control px-4 text-sm font-semibold transition-colors disabled:opacity-60;
+    @apply bg-ink text-surface hover:bg-ink-2 active:translate-y-px;
+}
+@utility btn-secondary {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-control px-4 text-sm font-semibold transition-colors disabled:opacity-60;
+    @apply border border-field bg-surface text-ink hover:bg-paper active:translate-y-px;
+}
+@utility btn-danger {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-control px-4 text-sm font-semibold transition-colors disabled:opacity-60;
+    @apply bg-bad text-surface hover:opacity-90 active:translate-y-px dark:text-paper;
+}
+@utility btn-ghost {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-control px-3 text-sm font-semibold transition-colors disabled:opacity-60;
+    @apply text-ink-2 hover:bg-line/60 hover:text-ink;
+}
+
+@utility input {
+    @apply block min-h-11 w-full rounded-control border border-field bg-surface px-3 py-2 text-base text-ink placeholder:text-muted sm:text-sm;
+}
+@utility label { @apply mb-1.5 block text-sm font-semibold text-ink; }
+@utility help { @apply mt-1 text-sm text-muted; }
+@utility error { @apply mt-1 text-sm font-semibold text-bad; }
+@utility tag { @apply inline-flex items-center gap-1 rounded-control px-1.5 py-0.5 text-xs font-semibold whitespace-nowrap; }
+/* relative: teks sr-only (position absolute) di dalam tabel ikut terpotong, tidak melebarkan halaman di HP. */
+@utility table-wrap { @apply relative -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0; }
+
+@utility nav-link {
+    @apply flex min-h-11 items-center gap-3 rounded-control px-3 text-sm font-medium text-ink-2 hover:bg-line/60 hover:text-ink;
+    &[aria-current='page'] { @apply bg-surface font-bold text-ink; box-shadow: inset 0 0 0 1px var(--c-line); }
+}
+
+/* Tabel bergaya buku kas: label kolom huruf biasa, garis tipis, angka rata kanan tabular. */
+@layer components {
+    .table { @apply w-full text-left text-sm; }
+    .table th { @apply border-b-2 border-ink/15 px-3 py-2 text-xs font-semibold whitespace-nowrap text-muted; }
+    .table td { @apply border-b border-line px-3 py-2.5 align-middle; }
+    .table tbody tr:hover td { @apply bg-paper/70; }
+}
