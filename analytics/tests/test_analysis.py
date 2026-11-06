@@ -34,8 +34,7 @@ def clean(csv: str = CSV, mapping=None):
     return parsing.clean_file(content, "data.csv", mapping)
 
 
-# ---------------------------------------------------------------- F2 ----
-
+# F2
 def test_rejects_non_csv_xlsx_files():
     r = client.post("/inspect", files={"file": ("data.pdf", b"%PDF", "application/pdf")})
     assert r.status_code == 422
@@ -85,8 +84,7 @@ def test_xlsx_is_supported():
     assert res["baris"]["tanggal"] == ["2026-10-01"]
 
 
-# ------------------------------------------------------------- helpers ----
-
+# helpers
 def rows(records):
     """records: (tanggal, jam, trx, produk, jumlah, harga[, punya_kode])"""
     out = {k: [] for k in ("tanggal", "jam", "trx", "punya_kode", "produk", "jumlah", "harga")}
@@ -100,8 +98,7 @@ def rows(records):
 PERIOD = {"mulai": "2026-10-08", "selesai": "2026-10-14", "lalu_mulai": "2026-10-01", "lalu_selesai": "2026-10-07"}
 
 
-# ---------------------------------------------------------------- F3 ----
-
+# F3
 def test_dashboard_matches_manual_calculation():
     data = rows([
         ("2026-10-02", "08:00", 1, "Kopi", 2, 10000),   # periode lalu: omzet 20.000, 1 trx
@@ -124,8 +121,7 @@ def test_dashboard_matches_manual_calculation():
     assert d["tren"]["omzet"][0] == 45000 and d["tren"]["omzet"][1] == 10000
 
 
-# ---------------------------------------------------------------- F4 ----
-
+# F4
 def test_product_change_formula_and_labels():
     data = rows(
         [("2026-10-02", None, i, "Naik", 1, 1000) for i in range(10)]
@@ -146,8 +142,7 @@ def test_product_change_formula_and_labels():
     assert p["Sedikit"]["perubahan"] == 100.0
 
 
-# ---------------------------------------------------------------- F5 ----
-
+# F5
 def test_heatmap_with_hours():
     data = rows([("2026-10-12", "08:10", i, "Kopi", 1, 1000) for i in range(5)]
                 + [("2026-10-12", "13:00", 10, "Kopi", 1, 1000)])
@@ -166,8 +161,7 @@ def test_heatmap_falls_back_to_per_day_without_hours():
     assert w["tersibuk"][0]["hari"] == "Senin"
 
 
-# ---------------------------------------------------------------- F6 ----
-
+# F6
 def _basket_data():
     import random
     rnd = random.Random(7)
@@ -214,8 +208,7 @@ def test_bundling_without_transaction_id_explains_instead_of_error():
     assert "ID transaksi" in b["pesan"]
 
 
-# ---------------------------------------------------------------- F7 ----
-
+# F7
 def test_menu_engineering_classification_and_missing_hpp():
     data = rows(
         [("2026-10-10", None, i, "A", 1, 20000) for i in range(40)]      # populer, margin 12.000

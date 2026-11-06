@@ -101,7 +101,7 @@ try:
     send("Page.enable")
     viewport(1280, 900, False)
 
-    # ---------------------------------------------------------------- Publik
+    # Publik
     go("/")
     record("Landing: tanpa em dash", js("!document.body.innerText.includes('\\u2014')"))
     record("Landing: satu h1, lang=id, title", js("document.querySelectorAll('h1').length===1 && document.documentElement.lang==='id' && !!document.title"))
@@ -140,7 +140,7 @@ try:
     time.sleep(3)
     record("Login: berhasil masuk ke /dashboard", js("location.pathname==='/dashboard'"))
 
-    # ---------------------------------------------------------------- Dashboard
+    # Dashboard
     go("/dashboard?periode=30", 2)
     record("Dashboard: stabilo pada omzet (satu titik fokus)", js("document.querySelectorAll('main .stabilo').length===1"))
     record("Dashboard: grafik tren tergambar", js("(()=>{const c=document.querySelector('[data-trend-chart]');return !!c && c.width>0})()"))
@@ -161,7 +161,7 @@ try:
     record("Filter periode: 'Rentang kustom' memunculkan tanggal", js("!document.querySelector('[data-custom]').classList.contains('hidden')"))
     shot("dashboard-terang")
 
-    # ---------------------------------------------------------------- Chatbot
+    # Chatbot
     go("/dashboard?periode=30", 2)
     js("document.querySelector('[data-chat-open]').click()")
     time.sleep(0.5)
@@ -195,7 +195,7 @@ try:
     record("Chat: Escape menutup panel & fokus kembali ke tombol",
            js("document.querySelector('[data-chat-panel]').hidden && document.activeElement===document.querySelector('[data-chat-open]')"))
 
-    # ---------------------------------------------------------------- Halaman lain
+    # Halaman lain
     js("[...document.querySelectorAll('nav[aria-label] a')].find(a=>a.innerText.startsWith('Naik')).click()")
     time.sleep(2)
     record("Produk: saring 'Naik' hanya menampilkan menu naik",
@@ -228,7 +228,7 @@ try:
     record("Keyboard: indikator fokus terlihat", js("getComputedStyle(document.activeElement).outlineStyle!=='none'"))
     record("Kursor pointer pada tombol", js("getComputedStyle(document.querySelector('[data-chat-open]')).cursor==='pointer'"))
 
-    # ---------------------------------------------------------------- HP 360px, dua tema
+    # HP 360px, dua tema
     viewport(360, 780, True)
     for theme in ("light", "dark"):
         js(f"localStorage.setItem('iu-theme','{theme}')")

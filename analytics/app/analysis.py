@@ -24,9 +24,7 @@ LABEL_BARU = "Produk Baru"
 MIN_UNIT_LABEL = 5
 
 
-# ---------------------------------------------------------------------------
 # Utilitas
-# ---------------------------------------------------------------------------
 
 def to_frame(rows: dict[str, list[Any]]) -> pd.DataFrame:
     cols = ["tanggal", "jam", "trx", "punya_kode", "produk", "jumlah", "harga"]
@@ -65,9 +63,7 @@ def fmt_tgl(d: date) -> str:
     return f"{d.day} {BULAN[d.month - 1]} {d.year}"
 
 
-# ---------------------------------------------------------------------------
 # F3 Dashboard
-# ---------------------------------------------------------------------------
 
 def _summary(df: pd.DataFrame) -> dict[str, Any]:
     omzet = float(df["omzet"].sum()) if not df.empty else 0.0
@@ -161,9 +157,7 @@ def dashboard(df: pd.DataFrame, period: dict[str, str], granularity: str | None 
     }
 
 
-# ---------------------------------------------------------------------------
 # F4 Produk naik dan turun
-# ---------------------------------------------------------------------------
 
 def product_label(cur_units: int, prev_units: int) -> tuple[str | None, float | None]:
     change = pct_change(cur_units, prev_units)
@@ -215,9 +209,7 @@ def products(df: pd.DataFrame, period: dict[str, str]) -> dict[str, Any]:
     }
 
 
-# ---------------------------------------------------------------------------
 # F5 Pola waktu ramai
-# ---------------------------------------------------------------------------
 
 def time_pattern(df: pd.DataFrame, period: dict[str, str]) -> dict[str, Any]:
     start, end = _d(period["mulai"]), _d(period["selesai"])
@@ -277,9 +269,7 @@ def time_pattern(df: pd.DataFrame, period: dict[str, str]) -> dict[str, Any]:
     return result
 
 
-# ---------------------------------------------------------------------------
 # F6 Bundling (Apriori)
-# ---------------------------------------------------------------------------
 
 def basket_matrix(df: pd.DataFrame) -> pd.DataFrame:
     """One-hot transaksi × produk (hanya transaksi yang punya ID transaksi)."""
@@ -341,9 +331,7 @@ def bundling(df: pd.DataFrame, period: dict[str, str], min_support: float = 0.01
     return {**base, "status": "ok", "pesan": None, "aturan": out}
 
 
-# ---------------------------------------------------------------------------
 # F7 Menu Engineering
-# ---------------------------------------------------------------------------
 
 SARAN_MENU = {
     "Star": "Pertahankan kualitas dan porsinya, taruh di posisi paling terlihat di menu, jangan didiskon besar.",
@@ -396,9 +384,7 @@ def menu_engineering(df: pd.DataFrame, period: dict[str, str], hpp: dict[str, fl
             "jumlah_kategori": {k: sum(1 for p in complete if p["kategori"] == k) for k in SARAN_MENU}}
 
 
-# ---------------------------------------------------------------------------
 # Pintu masuk
-# ---------------------------------------------------------------------------
 
 def run(kinds: list[str], rows: dict[str, list[Any]], period: dict[str, str],
         params: dict[str, Any] | None = None) -> dict[str, Any]:

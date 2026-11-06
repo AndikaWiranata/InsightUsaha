@@ -17,8 +17,7 @@ const compact = (v) => {
 };
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/* ------------------------------------------------------------------ Tema */
-
+// Tema
 const themeButtons = document.querySelectorAll('[data-theme-toggle]');
 const syncThemeButtons = () => {
     const dark = root.getAttribute('data-theme') === 'dark';
@@ -36,8 +35,7 @@ themeButtons.forEach((b) => b.addEventListener('click', () => {
 }));
 syncThemeButtons();
 
-/* ------------------------------------------------------------------ Grafik */
-
+// Grafik
 const charts = [];
 
 function chartColors() {
@@ -123,8 +121,7 @@ function dayChart(el) {
 document.querySelectorAll('[data-trend-chart]').forEach(trendChart);
 document.querySelectorAll('[data-day-chart]').forEach(dayChart);
 
-/* ------------------------------------------------------------------ Ringkasan AI */
-
+// Ringkasan AI
 const esc = (s) => String(s).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 
 const aiBox = document.querySelector('[data-ai-summary]');
@@ -150,7 +147,7 @@ if (aiBox) {
                 if (res.status !== 'ok') return failed();
                 body.innerHTML =
                     '<h3 class="text-sm font-bold">Yang terjadi</h3>'
-                    + '<ul class="mt-2 space-y-2 text-sm">' + res.temuan.map((t) => '<li class="border-l-2 border-line pl-3">' + esc(t) + '</li>').join('') + '</ul>'
+                    + '<ul class="mt-2 list-disc space-y-2 pl-5 text-sm marker:text-muted">' + res.temuan.map((t) => '<li>' + esc(t) + '</li>').join('') + '</ul>'
                     + '<h3 class="mt-5 text-sm font-bold">Yang bisa kamu lakukan</h3>'
                     + '<ol class="mt-2 space-y-2 text-sm">' + res.saran.map((t, i) => '<li class="flex gap-2.5"><span class="tabular font-extrabold text-brand">' + (i + 1) + '.</span><span>' + esc(t) + '</span></li>').join('') + '</ol>';
                 fb.classList.remove('hidden');
@@ -166,8 +163,7 @@ if (aiBox) {
     load();
 }
 
-/* ------------------------------------------------------------------ Chatbot */
-
+// Chatbot
 const chat = document.querySelector('[data-chat]');
 if (chat) {
     const openBtn = chat.querySelector('[data-chat-open]');
@@ -341,8 +337,7 @@ if (chat) {
     input.addEventListener('input', () => { input.style.height = ''; input.style.height = Math.min(input.scrollHeight, 128) + 'px'; });
 }
 
-/* ------------------------------------------------------------------ Progres impor (F2) */
-
+// Progres impor (F2)
 const progress = document.querySelector('[data-upload-progress]');
 if (progress) {
     const bar = progress.querySelector('[data-bar]');
@@ -361,8 +356,7 @@ if (progress) {
     poll();
 }
 
-/* ------------------------------------------------------------------ Validasi file sebelum unggah (F2) */
-
+// Validasi file sebelum unggah (F2)
 document.querySelectorAll('input[type=file][data-accept-ext]').forEach((input) => {
     const exts = input.dataset.acceptExt.split(',');
     const form = input.closest('form');
@@ -390,8 +384,7 @@ document.querySelectorAll('form[data-busy-label]').forEach((f) => f.addEventList
     if (b && !b.disabled) { setTimeout(() => { b.disabled = true; b.textContent = f.dataset.busyLabel; }, 0); }
 }));
 
-/* ------------------------------------------------------------------ Filter periode */
-
+// Filter periode
 document.querySelectorAll('[data-period-form]').forEach((form) => {
     const sel = form.querySelector('select[name=periode]');
     const custom = form.querySelector('[data-custom]');
@@ -400,8 +393,7 @@ document.querySelectorAll('[data-period-form]').forEach((form) => {
     sync();
 });
 
-/* ------------------------------------------------------------------ Menu HP */
-
+// Menu HP
 const toggle = document.querySelector('[data-nav-toggle]');
 if (toggle) {
     const nav = document.querySelector('[data-nav]');
@@ -417,8 +409,7 @@ if (toggle) {
     });
 }
 
-/* ------------------------------------------------------------------ Konfirmasi aksi berbahaya */
-
+// Konfirmasi aksi berbahaya
 document.querySelectorAll('form[data-confirm]').forEach((f) => f.addEventListener('submit', (e) => {
     if (!window.confirm(f.dataset.confirm)) e.preventDefault();
 }));

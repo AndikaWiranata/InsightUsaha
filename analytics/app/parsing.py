@@ -41,9 +41,7 @@ class FileError(Exception):
     """Kesalahan yang membuat seluruh file tidak bisa dibaca (pesan untuk pengguna)."""
 
 
-# ---------------------------------------------------------------------------
 # Membaca file
-# ---------------------------------------------------------------------------
 
 def _decode(content: bytes) -> str:
     for enc in ("utf-8-sig", "cp1252", "latin-1"):
@@ -134,9 +132,7 @@ def missing_required(mapping: dict[str, str | None]) -> list[str]:
     return [f for f in REQUIRED if not mapping.get(f)]
 
 
-# ---------------------------------------------------------------------------
 # Parser nilai
-# ---------------------------------------------------------------------------
 
 _EXCEL_EPOCH = datetime(1899, 12, 30)
 _RE_ISO = re.compile(r"^(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:[ T](\d{1,2})[:.](\d{2})(?::(\d{2}))?)?")
@@ -248,9 +244,7 @@ def normalize_code(v: Any) -> str | None:
     return s or None
 
 
-# ---------------------------------------------------------------------------
 # Inspeksi & pembersihan
-# ---------------------------------------------------------------------------
 
 def _preview_value(v: Any) -> str:
     if _is_blank(v):

@@ -25,7 +25,7 @@
     .big { font-size: 14px; font-weight: bold; }
     .bar { background: #7A4521; height: 8px; }
     .good { color: #2D6A2F; } .bad { color: #A3341C; }
-    .ai { background: #F6F1E7; border-left: 3px solid #F4C542; padding: 8px 10px; }
+    .ai { background: #F6F1E7; border: 1px solid #DDD3C3; padding: 8px 10px; }
     ul { margin: 4px 0; padding-left: 14px; } li { margin-bottom: 2px; }
 </style>
 </head>
