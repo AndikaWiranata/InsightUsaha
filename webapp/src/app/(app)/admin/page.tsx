@@ -24,32 +24,37 @@ export default async function Page({ searchParams }: PageProps<'/admin'>) {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const weekAgo = new Date(now.getTime() - 6 * 86400000).toISOString().slice(0, 10);
 
-  const [{ data: users }, { data: owners }, { data: active }, { data: paid }, { data: payments }, { data: uploads }, { data: feedback }, logs] = await Promise.all([
-    db.from('profiles').select('id, nama, role, created_at, businesses(id, nama_usaha, kota, subscriptions(paket, status, berakhir))')
-      .eq('role', 'owner').order('created_at', { ascending: false }).limit(200),
+  // businesses.user_id merujuk auth.users, bukan profiles, jadi usaha diambil terpisah lalu digabung lewat user_id.
+  const [users, { data: owners }, businesses, { data: active }, { data: paid }, { data: payments }, { data: uploads }, { data: feedback }, logs] = await Promise.all([
+    db.from('profiles').select('id, nama, created_at').eq('role', 'owner').order('created_at', { ascending: false }).limit(200),
     db.from('profiles').select('id').eq('role', 'owner'),
+    db.from('businesses').select('id, user_id, nama_usaha, kota, subscriptions(paket, status, berakhir)'),
     db.from('activity_logs').select('user_id').gte('tanggal', weekAgo),
-    db.from('subscriptions').select('id').eq('paket', 'pro').eq('status', 'aktif').gt('berakhir', now.toISOString()),
+    db.from('subscriptions').select('business_id').eq('paket', 'pro').eq('status', 'aktif').gt('berakhir', now.toISOString()),
     db.from('payments').select('jumlah').eq('status', 'lunas').gte('dibayar_pada', monthStart),
     db.from('uploads').select('business_id, status'),
     db.from('ai_summaries').select('umpan_balik').not('umpan_balik', 'is', null),
     (jenis && JENIS[jenis] ? db.from('error_logs').select('*').eq('jenis', jenis) : db.from('error_logs').select('*')).order('id', { ascending: false }).limit(50),
   ]);
+  if (users.error || businesses.error) throw new Error(`Gagal memuat daftar pengguna: ${(users.error ?? businesses.error)!.message}`);
   const { data: authUsers } = await db.auth.admin.listUsers({ perPage: 1000 });
   const emails = new Map(authUsers.users.map((u) => [u.id, { email: u.email ?? '', verified: Boolean(u.email_confirmed_at) }]));
 
+  type Biz = { id: number; user_id: string; nama_usaha: string; kota: string | null; subscriptions: { paket: string; status: string; berakhir: string | null } | null };
+  const bizByUser = new Map((businesses.data as unknown as Biz[]).map((b) => [b.user_id, b]));
+  // Usaha milik admin (dibuat otomatis saat daftar) tidak ikut statistik.
+  const ownerIds = new Set((owners ?? []).map((o) => o.id));
+  const ownerBiz = new Set([...bizByUser.values()].filter((b) => ownerIds.has(b.user_id)).map((b) => b.id));
   const uploadCount = new Map<number, number>();
   const activated = new Set<number>();
-  for (const u of uploads ?? []) {
+  for (const u of (uploads ?? []).filter((x) => ownerBiz.has(x.business_id))) {
     uploadCount.set(u.business_id, (uploadCount.get(u.business_id) ?? 0) + 1);
     if (u.status === 'selesai') activated.add(u.business_id);
   }
   const helpful = (feedback ?? []).filter((f) => f.umpan_balik === 'membantu').length;
   const totalOwners = owners?.length ?? 0;
-  type Row = { id: string; nama: string; created_at: string;
-    businesses: { id: number; nama_usaha: string; kota: string | null; subscriptions: { paket: string; status: string; berakhir: string | null } | null } | null };
-  const rows = ((users ?? []) as unknown as Row[]).map((u) => {
-    const b = u.businesses, s = b?.subscriptions;
+  const rows = users.data.map((u) => {
+    const b = bizByUser.get(u.id), s = b?.subscriptions;
     const pro = s && s.paket === 'pro' && s.status === 'aktif' && (!s.berakhir || new Date(s.berakhir) > now);
     return { ...u, b, s, pro, ...emails.get(u.id), uploads: b ? uploadCount.get(b.id) ?? 0 : 0 };
   }).filter((r) => !q || [r.nama, r.email, r.b?.nama_usaha].some((v) => v?.toLowerCase().includes(q.toLowerCase())));
@@ -57,7 +62,7 @@ export default async function Page({ searchParams }: PageProps<'/admin'>) {
   const stats: [string, string][] = [
     ['Pengguna terdaftar', F.number(totalOwners)],
     ['Aktif 7 hari terakhir', F.number(new Set((active ?? []).map((a) => a.user_id)).size)],
-    ['Pelanggan berbayar', F.number(paid?.length ?? 0)],
+    ['Pelanggan berbayar', F.number((paid ?? []).filter((p) => ownerBiz.has(p.business_id)).length)],
     ['Pendapatan bulan ini', F.rupiah((payments ?? []).reduce((t, p) => t + p.jumlah, 0))],
     ['Sudah unggah data', `${totalOwners ? Math.round((activated.size / totalOwners) * 100) : 0}%`],
   ];

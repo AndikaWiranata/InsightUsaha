@@ -46,8 +46,9 @@ export async function getAccount(): Promise<Account> {
   const isPro = sub.paket === 'pro' && sub.status === 'aktif' && (!sub.berakhir || new Date(sub.berakhir) > new Date());
 
   const { data: latest } = await sb.from('transactions').select('waktu').order('waktu', { ascending: false }).limit(1).maybeSingle();
-  // Satu baris per pengguna per hari untuk metrik "pengguna aktif mingguan"; duplikat diabaikan.
-  await sb.from('activity_logs').upsert({ user_id: auth.user.id }, { onConflict: 'user_id,tanggal', ignoreDuplicates: true });
+  // Satu baris per pengguna per hari untuk metrik "pengguna aktif mingguan". Insert biasa, bukan upsert:
+  // ON CONFLICT butuh policy SELECT yang tidak dimiliki tabel ini. Duplikat (kode 23505) memang diharapkan.
+  await sb.from('activity_logs').insert({ user_id: auth.user.id });
   return {
     userId: auth.user.id, email: auth.user.email ?? '', nama: profile.nama, role: profile.role,
     business: biz, subscription: sub, isPro, latestDataDate: latest ? String(latest.waktu).slice(0, 10) : null,
