@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # InsightUsaha
 
 Aplikasi web SaaS yang mengubah data penjualan UMKM kuliner menjadi insight dan saran tindakan (lihat `PRD_InsightUsaha.md`).
@@ -78,7 +79,7 @@ Jangan membuka tabel ini lewat Supabase Data API/`anon key`. Matikan Data API un
 | `MIDTRANS_SERVER_KEY`, `MIDTRANS_PRODUCTION` | Payment gateway (QRIS, e-wallet, VA). Kosong → mode simulasi. Webhook: `POST /webhook/pembayaran` |
 | `MAIL_*` | SMTP untuk verifikasi email, reset sandi, pengingat |
 
-## Pengujian
+## Pengujian  
 
 ```powershell
 cd analytics; .venv\Scripts\python -m pytest     # 14 test: F2 validasi, F3 vs hitung manual, F4 rumus, F5, F6 vs mlxtend, F7
@@ -109,3 +110,6 @@ Uji manual end-to-end (server, queue, analytics berjalan): `python tools\e2e.py 
   angka di fakta agregat; bila ada angka asing, dicoba ulang sekali lalu dianggap gagal dan dicatat di log admin.
 - **Payment gateway**: Midtrans Snap (PRD belum menentukan); mode simulasi tersedia untuk pengembangan.
 - **Pola waktu** memakai heatmap HTML (sel berwarna + angka) alih-alih plugin Chart.js, agar ringan dan mudah dibaca di HP.
+=======
+# InsightUsaha
+>>>>>>> 380c5d763107ef2ee702e7e180f2678e2f2c5ed4
