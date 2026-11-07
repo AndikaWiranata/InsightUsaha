@@ -1,4 +1,4 @@
-// Skenario dan angka harapan sama dengan analytics/tests/test_analysis.py (versi Python).
+// Skenario dan angka harapan sama dengan tes versi Python lama (lihat riwayat git).
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { PGlite } from '@electric-sql/pglite';
 import { asUser, call, createUser, freshDb, insertSales, type SaleRow } from './db';

@@ -1,4 +1,4 @@
-// Pembersihan file penjualan (F2). Aturan sama dengan analytics/app/parsing.py versi Python;
+// Pembersihan file penjualan (F2). Aturan diturunkan dari versi Python lama (lihat riwayat git);
 // kesetaraannya diuji di tests/parse.test.ts terhadap hasil Python pada file contoh yang sama.
 
 export const FIELDS = ['tanggal', 'jam', 'id_transaksi', 'nama_produk', 'kategori', 'jumlah', 'harga_satuan'] as const;

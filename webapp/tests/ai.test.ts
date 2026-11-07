@@ -1,4 +1,4 @@
-// F8/F12: pengecekan angka jawaban AI dan fakta agregat (sama dengan tes versi Laravel).
+// F8/F12: pengecekan angka jawaban AI dan fakta agregat (skenario dari versi Laravel lama).
 import { describe, expect, it } from 'vitest';
 import { allowedNumbers, foreignNumbers, leakedFieldNames } from '@/lib/ai/numbers';
 import { buildFacts } from '@/lib/ai/facts';

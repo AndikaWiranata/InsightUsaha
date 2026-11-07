@@ -1,5 +1,5 @@
 // Bukti kesetaraan: fungsi SQL versi Next.js vs versi Python, pada 13.743 baris data contoh yang sama.
-// Acuan dibuat oleh tools/parity_reference.py dari analytics/app/analysis.py.
+// Acuan (fixtures/python-reference.json) dibuat dari versi Python lama; lihat riwayat git untuk skripnya.
 import { beforeAll, describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';

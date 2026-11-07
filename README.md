@@ -3,19 +3,9 @@
 Aplikasi web yang mengubah data penjualan UMKM kuliner menjadi insight dan saran tindakan dalam bahasa Indonesia.
 Kebutuhan lengkap ada di [PRD_InsightUsaha.md](PRD_InsightUsaha.md); arah tampilan di [DESIGN.md](DESIGN.md).
 
-Repo ini berisi dua versi yang fiturnya sama. Pilih salah satu:
+Stack: Next.js 16 + Supabase (Postgres, Auth, Row Level Security), di-deploy ke Vercel. Kode aplikasi ada di [`webapp/`](webapp/).
 
-| Folder | Stack | Hosting | Status |
-| --- | --- | --- | --- |
-| [`webapp/`](webapp/) | Next.js 16 + Supabase (Postgres, Auth, RLS) | Vercel + Supabase, gratis | Versi utama (PRD v2) |
-| [`web/`](web/) + [`analytics/`](analytics/) | Laravel 12 + FastAPI (pandas, mlxtend) | VPS / Render / Oracle Cloud | Versi awal (PRD v1), tetap berfungsi |
-
-Angka analisis kedua versi dibuktikan sama: `webapp/tests/parity.test.ts` membandingkan fungsi SQL dengan hasil Python
-pada 13.743 baris data contoh, di tiga periode.
-
-## Versi Next.js (`webapp/`)
-
-### Menjalankan secara lokal
+## Menjalankan secara lokal
 
 Butuh Node 20+ dan satu project Supabase.
 
@@ -38,7 +28,7 @@ Butuh Node 20+ dan satu project Supabase.
 | `MIDTRANS_SERVER_KEY`, `MIDTRANS_PRODUCTION` | Pembayaran Pro. Kosong = mode simulasi |
 | `CRON_SECRET` | Pengaman endpoint harian `/api/cron/langganan` (turun ke Gratis saat langganan berakhir) |
 
-### Deploy ke Vercel
+## Deploy ke Vercel
 
 1. Import repo ini di Vercel, set **Root Directory** = `webapp`.
 2. Isi semua variabel di atas pada **Settings → Environment Variables**.
@@ -46,7 +36,7 @@ Butuh Node 20+ dan satu project Supabase.
    (`https://<domain>/auth/konfirmasi`) agar tautan verifikasi email dan atur ulang sandi mengarah ke aplikasi.
 4. Cron harian sudah diatur di `webapp/vercel.json`.
 
-### Arsitektur singkat
+## Arsitektur singkat
 
 - File Excel/CSV dibaca dan dibersihkan **di browser** (`src/lib/import/`), lalu dikirim bertahap ke fungsi database
   `import_start` → `import_chunk` → `import_finish`. File asli tidak disimpan di server.
@@ -57,52 +47,24 @@ Butuh Node 20+ dan satu project Supabase.
   atau menyalin nama kunci data, ditolak lalu dicoba ulang sekali.
 - Laporan PDF dibuat dengan **Simpan sebagai PDF** di browser dari halaman `/laporan/cetak`.
 
-### Pengujian
+## Pengujian
 
 ```powershell
 cd webapp
-npx vitest run                         # 41 tes: rumus F2–F7, RLS, impor, kesetaraan dengan Python, cek angka AI
+npx vitest run                         # 41 tes: rumus F2–F7, RLS, impor, kesetaraan dengan acuan, cek angka AI
 node scripts/verify-supabase.mjs       # cek skema, RLS, dan impor di Supabase sungguhan (akun uji dihapus lagi)
 node scripts/clickthrough.mjs <folder> # klik nyata di Edge headless: 67 pemeriksaan, termasuk HP 360 px dan tema gelap
 ```
 
 `clickthrough.mjs` butuh server berjalan (`npm run build && npm start`) dan akun demo.
 
-## Versi Laravel (`web/` + `analytics/`)
-
-Butuh PHP 8.2+ (ekstensi `pdo_sqlite`, `pdo_pgsql`, `zip`, `gd`, `fileinfo`, OPcache aktif), Composer, Node 20+, Python 3.11+.
-
-```powershell
-# Layanan analitik
-cd analytics
-python -m venv .venv
-.venv\Scripts\pip install -r requirements.txt
-$env:ANALYTICS_TOKEN = "dev-token-ganti-di-produksi"
-.venv\Scripts\python -m uvicorn app.main:app --port 8001
-
-# Web app (terminal lain)
-cd web
-php ..\tools\composer.phar install
-npm install; npm run build
-copy .env.example .env
-php artisan key:generate
-php artisan migrate
-php artisan admin:buat admin@insightusaha.id --password=admin12345
-php artisan serve                   # http://127.0.0.1:8000
-php artisan queue:work --timeout=300   # terminal lain; impor berjalan di latar belakang
-```
-
-Basis data lokal memakai SQLite. Untuk PostgreSQL/Supabase, isi `DB_*` di `web/.env` dengan kredensial
-**Session pooler** (port 5432), lalu `php artisan migrate`.
-
-Pengujian: `cd analytics; .venv\Scripts\python -m pytest` (14 tes) dan `cd web; php artisan test` (31 tes).
+`tests/fixtures/python-reference.json` adalah hasil acuan dari versi Laravel + Python sebelumnya (dihapus dari repo,
+masih ada di riwayat git). Tes `parity.test.ts` memastikan fungsi SQL menghasilkan angka yang sama.
 
 ## Alat bantu (`tools/`)
 
 - `make_sample.py <file.csv>`: data contoh kedai kopi 3 bulan (±13.700 baris, isi selalu sama).
-- `parity_reference.py`: hasil acuan versi Python untuk tes kesetaraan versi Next.js.
 - `contrast.py`: cek kontras WCAG warna tema terang dan gelap.
-- `clickthrough.py`: uji klik versi Laravel.
 
 ## Asumsi (hal yang tidak dijelaskan PRD)
 
@@ -113,7 +75,7 @@ Pengujian: `cd analytics; .venv\Scripts\python -m pytest` (14 tes) dan `cd web; 
 - **Kuota Gratis** = 1 unggahan berhasil per bulan kalender.
 - **Ringkasan AI** dimuat terpisah agar halaman tetap cepat; disimpan per periode dan dibuat ulang hanya bila data berubah.
 - **Payment gateway**: Midtrans Snap; mode simulasi tersedia untuk pengembangan.
-- **Email pengingat H-3** (versi Next.js) belum dikirim: Supabase hanya mengirim email akun. Pengingat tampil di halaman
-  Langganan; untuk email perlu layanan email tambahan (mis. Resend).
+- **Email pengingat H-3** belum dikirim: Supabase hanya mengirim email akun. Pengingat tampil di halaman Langganan;
+  untuk email perlu layanan email tambahan (mis. Resend).
 - **Kuota AI**: paket gratis Gemini membatasi jumlah permintaan per model per hari; saat habis dipakai model cadangan,
   dan bila keduanya habis halaman tetap tampil dengan pesan "Ringkasan belum tersedia".

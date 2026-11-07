@@ -1,4 +1,4 @@
-// Skenario F2 sama dengan analytics/tests/test_analysis.py, ditambah kesetaraan dengan Python pada file contoh.
+// Skenario F2 sama dengan tes versi Python lama, ditambah kesetaraan dengan Python pada file contoh.
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';

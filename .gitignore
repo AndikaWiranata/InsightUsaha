@@ -1,10 +1,5 @@
-tools/composer.phar
-analytics/.venv/
 __pycache__/
 .pytest_cache/
-
-# lokal
-web/storage/app/contoh-penjualan.csv
 *.bak-insightusaha
 .claude/settings.local.json
 tools/contoh-penjualan.csv
