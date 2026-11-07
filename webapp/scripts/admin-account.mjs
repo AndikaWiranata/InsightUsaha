@@ -1,13 +1,12 @@
 // Buat (atau setel ulang) akun admin terverifikasi. Pakai: node scripts/admin-account.mjs [email] [kata-sandi]
-// Tanpa kata sandi, dibuatkan kata sandi acak dan dicetak sekali.
-import { randomBytes } from 'node:crypto';
+// Bawaan: admin@insightusaha.id / admin12345. Ganti kata sandinya sebelum aplikasi dipakai orang lain.
 import { readFileSync } from 'node:fs';
 
 const env = Object.fromEntries(readFileSync(new URL('../.env.local', import.meta.url), 'utf8')
   .split('\n').filter((l) => /^[A-Z_]+=/.test(l)).map((l) => [l.slice(0, l.indexOf('=')), l.slice(l.indexOf('=') + 1).trim()]));
 const URL_ = env.NEXT_PUBLIC_SUPABASE_URL, SEC = env.SUPABASE_SECRET_KEY;
 const email = (process.argv[2] ?? 'admin@insightusaha.id').toLowerCase();
-const password = process.argv[3] ?? randomBytes(9).toString('base64url');
+const password = process.argv[3] ?? 'admin12345';
 if (password.length < 8) throw new Error('Kata sandi minimal 8 karakter.');
 
 const api = async (path, init = {}) => {
