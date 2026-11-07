@@ -46,18 +46,19 @@ try {
   check('Daftar: profil dibuat dengan role owner', prof.json?.[0]?.role === 'owner');
   const idA = bizA.json[0].id;
 
-  // Data penjualan kecil untuk usaha A (lewat RLS, sebagai pengguna A).
-  const up = await api('/rest/v1/uploads', { token: a.token, method: 'POST', headers: { Prefer: 'return=representation' },
-    body: { business_id: idA, nama_file: 'uji.csv', status: 'selesai' } });
-  check('Pengguna A bisa menulis unggahan sendiri', up.status === 201, `HTTP ${up.status}`);
-  const pr = await api('/rest/v1/products', { token: a.token, method: 'POST', headers: { Prefer: 'return=representation' },
-    body: [{ business_id: idA, nama: 'Kopi' }, { business_id: idA, nama: 'Roti' }] });
-  const tr = await api('/rest/v1/transactions', { token: a.token, method: 'POST', headers: { Prefer: 'return=representation' },
-    body: [{ business_id: idA, upload_id: up.json[0].id, kode_transaksi: 'T1', waktu: '2026-10-10 09:00:00', punya_jam: true }] });
-  const it = await api('/rest/v1/transaction_items', { token: a.token, method: 'POST',
-    body: [{ transaction_id: tr.json[0].id, product_id: pr.json[0].id, jumlah: 2, harga_satuan: 18000 },
-           { transaction_id: tr.json[0].id, product_id: pr.json[1].id, jumlah: 1, harga_satuan: 22000 }] });
-  check('Pengguna A bisa menulis transaksi sendiri', tr.status === 201 && it.status === 201, `HTTP ${tr.status}/${it.status}`);
+  // Data penjualan kecil untuk usaha A, lewat fungsi impor (cara yang dipakai aplikasi).
+  const rpc = (fn, body, token) => api(`/rest/v1/rpc/${fn}`, { token, method: 'POST', body });
+  const row = (no, produk, jumlah, harga) => ({ no, tanggal: '2026-10-10', jam: '09:00', id_transaksi: 'T1', nama_produk: produk,
+    kategori: null, jumlah, harga_satuan: harga, hash: `2026-10-10|09:00|T1|${produk.toLowerCase()}|${jumlah}|${harga}.0` });
+  const start = await rpc('import_start', { p_nama_file: 'uji.csv', p_mode: 'baru', p_mulai: '2026-10-10', p_selesai: '2026-10-10' }, a.token);
+  const chunk = await rpc('import_chunk', { p_upload: start.json, p_rows: [row(0, 'Kopi', 2, 18000), row(1, 'Roti', 1, 22000)] }, a.token);
+  const finish = await rpc('import_finish', { p_upload: start.json, p_ringkasan: { jumlah_baris_valid: 2, jumlah_baris_ditolak: 0 }, p_ditolak: [] }, a.token);
+  check('Impor lewat fungsi database (start, chunk, finish)', start.status === 200 && chunk.json === 2 && finish.json === 2,
+    `HTTP ${start.status}/${chunk.status}/${finish.status}, baris ${finish.json}`);
+  const direct = await api('/rest/v1/uploads', { token: a.token, method: 'POST', body: { business_id: idA, nama_file: 'langsung.csv' } });
+  check('Menulis tabel unggahan langsung ditolak (harus lewat fungsi impor)', direct.status >= 400, `HTTP ${direct.status}`);
+  const chunkB = await rpc('import_chunk', { p_upload: start.json, p_rows: [row(5, 'Racun', 1, 1)] }, b.token);
+  check('Pengguna B tidak bisa menyisipkan baris ke unggahan A', chunkB.status >= 400, `HTTP ${chunkB.status}`);
 
   const dA = await api('/rest/v1/rpc/analisis_dashboard', { token: a.token, method: 'POST', body: { d_start: '2026-10-01', d_end: '2026-10-31' } });
   check('Fungsi analisis jalan untuk pengguna A', Number(dA.json?.ringkasan?.omzet) === 58000 && Number(dA.json?.ringkasan?.transaksi) === 1,

@@ -36,7 +36,8 @@ with open(out, "w", newline="", encoding="utf-8") as f:
                 items.add(MENU[0])
             if "Pisang Goreng" in names and rnd.random() < 0.5:
                 items.add(MENU[3])
-            for m in items:
+            # Diurutkan agar file yang sama keluar di setiap jalan (urutan set bergantung hash acak per proses).
+            for m in sorted(items):
                 qty = 1 if rnd.random() < 0.85 else 2
                 w.writerow([day.isoformat(), jam, f"TRX{trx:06d}", m[0], m[1], qty, m[2]])
     # beberapa baris rusak untuk menguji validasi

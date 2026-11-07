@@ -1,0 +1,4 @@
+﻿tanggal,jam,id_transaksi,nama_produk,kategori,jumlah,harga_satuan
+2026-10-01,08:15,TRX001,Kopi Susu Gula Aren,Minuman,2,18000
+2026-10-01,08:15,TRX001,Croissant,Makanan,1,22000
+2026-10-01,09:40,TRX002,Americano,Minuman,1,15000

@@ -5,6 +5,8 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  // Tes membaca hasil JSON mentah dari database untuk dibandingkan dengan acuan Python.
+  { files: ["tests/**"], rules: { "@typescript-eslint/no-explicit-any": "off" } },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

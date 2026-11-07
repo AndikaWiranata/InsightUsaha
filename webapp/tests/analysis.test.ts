@@ -137,6 +137,9 @@ describe('F1 multi-tenant (Row Level Security)', () => {
       expect((await db.query('select * from public.businesses')).rows.map((r: any) => Number(r.id))).toEqual([biz2]);
       const d = await call(db, 'analisis_dashboard', '2026-10-01', '2026-10-31');
       expect(Number(d.ringkasan.omzet)).toBe(0);
+      // sales_rows membaca tanpa RLS demi kecepatan, jadi wajib menolak id usaha milik orang lain.
+      const leak = await db.query('select * from public.sales_rows($1, $2, $3)', [biz, '2026-01-01', '2026-12-31']);
+      expect(leak.rows).toHaveLength(0);
       const del = await db.query('delete from public.products where business_id = $1', [biz]);
       expect(del.affectedRows ?? 0).toBe(0);
       await expect(db.query(`insert into public.uploads (business_id, nama_file) values ($1, 'x.csv')`, [biz])).rejects.toThrow();
