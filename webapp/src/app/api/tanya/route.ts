@@ -4,6 +4,9 @@ import { analyze } from '@/lib/analysis';
 import { label, minStartFor, resolvePeriod } from '@/lib/period';
 import { answerQuestion, type ChatMessage } from '@/lib/ai/service';
 
+// Pemanggilan Gemini (dengan satu kali coba ulang) bisa lebih dari batas bawaan fungsi Vercel.
+export const maxDuration = 60;
+
 // Batas sederhana per pengguna per instance server: 20 pertanyaan per menit.
 const hits = new Map<string, number[]>();
 function limited(userId: string) {

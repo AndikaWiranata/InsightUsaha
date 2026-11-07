@@ -4,6 +4,9 @@ import { analyze } from '@/lib/analysis';
 import { minStartFor, resolvePeriod } from '@/lib/period';
 import { getSummary } from '@/lib/ai/service';
 
+// Pemanggilan Gemini (dengan satu kali coba ulang) bisa lebih dari batas bawaan fungsi Vercel.
+export const maxDuration = 60;
+
 export async function GET(req: NextRequest) {
   const acc = await getAccount();
   if (!acc.isPro) return NextResponse.json({ status: 'pro' }, { status: 403 });

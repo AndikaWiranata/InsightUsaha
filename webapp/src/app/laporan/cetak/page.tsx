@@ -9,6 +9,8 @@ import { loadContext } from '../../(app)/page-data';
 import { PrintButton } from './print-button';
 
 export const metadata: Metadata = { title: 'Laporan penjualan' };
+// Laporan menjalankan lima analisis dan bisa membuat ringkasan AI sekaligus.
+export const maxDuration = 60;
 
 export default function Page({ searchParams }: PageProps<'/laporan/cetak'>) {
   return <Suspense fallback={<p className="p-8 text-muted">Menyiapkan laporan…</p>}><Report searchParams={searchParams} /></Suspense>;
