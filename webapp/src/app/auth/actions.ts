@@ -19,13 +19,16 @@ const safeNext = (v: string) => (v.startsWith('/') && !v.startsWith('//') ? v : 
 export async function signIn(_: FormState, form: FormData): Promise<FormState> {
   const email = str(form, 'email').toLowerCase();
   const sb = await supabaseServer();
-  const { error } = await sb.auth.signInWithPassword({ email, password: String(form.get('password') ?? '') });
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: String(form.get('password') ?? '') });
   if (error) {
     const msg = error.code === 'email_not_confirmed' ? 'Email belum diverifikasi. Cek kotak masuk kamu untuk tautan verifikasi.'
       : error.status === 429 ? 'Terlalu banyak percobaan masuk. Coba lagi beberapa saat lagi.'
       : 'Email atau kata sandi salah.';
     return { error: msg, fields: { email } };
   }
+  // Admin tidak punya usaha untuk dianalisis, jadi langsung ke panel admin.
+  const { data: profile } = await sb.from('profiles').select('role').eq('id', data.user!.id).single();
+  if (profile?.role === 'admin') redirect('/admin');
   redirect(safeNext(str(form, 'lanjut')));
 }
 

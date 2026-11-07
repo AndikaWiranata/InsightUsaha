@@ -59,6 +59,7 @@ cd webapp
 npx vitest run                         # 41 tes: rumus F2–F7, RLS, impor, kesetaraan dengan acuan, cek angka AI
 node scripts/verify-supabase.mjs       # cek skema, RLS, dan impor di Supabase sungguhan (akun uji dihapus lagi)
 node scripts/clickthrough.mjs <folder> # klik nyata di Edge headless: 67 pemeriksaan, termasuk HP 360 px dan tema gelap
+node scripts/check-roles.mjs <sandi-admin> <sandi-demo>  # masuk sebagai admin (harus ke /admin) dan sebagai demo (harus ke /dashboard)
 ```
 
 `clickthrough.mjs` butuh server berjalan (`npm run build && npm start`) dan akun demo kosong

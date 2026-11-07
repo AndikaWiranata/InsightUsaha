@@ -14,7 +14,20 @@ export type Account = {
 
 export const JENIS_USAHA = ['Kedai kopi', 'Warung makan', 'Restoran', 'Kafe', 'Bakery / kue', 'Minuman', 'Katering', 'Lainnya'];
 
-/** Akun yang sedang masuk beserta usahanya. Mengarahkan ke /masuk bila belum masuk atau email belum diverifikasi. */
+/** Peran pengguna yang sedang masuk, tanpa memuat data usaha. Mengarahkan ke /masuk bila belum masuk. */
+export async function getRole(): Promise<{ userId: string; email: string; nama: string; role: 'owner' | 'admin' }> {
+  const sb = await supabaseServer();
+  const { data: auth } = await sb.auth.getUser();
+  if (!auth.user) redirect('/masuk');
+  const { data: profile } = await sb.from('profiles').select('nama, role').eq('id', auth.user.id).single();
+  if (!profile) redirect('/masuk');
+  return { userId: auth.user.id, email: auth.user.email ?? '', nama: profile.nama, role: profile.role };
+}
+
+/**
+ * Akun pemilik usaha yang sedang masuk beserta usahanya. Mengarahkan ke /masuk bila belum masuk.
+ * Admin tidak mengelola usaha, jadi diarahkan ke panel admin.
+ */
 export async function getAccount(): Promise<Account> {
   const sb = await supabaseServer();
   const { data: auth } = await sb.auth.getUser();
@@ -24,7 +37,9 @@ export async function getAccount(): Promise<Account> {
     sb.from('profiles').select('nama, role').eq('id', auth.user.id).single(),
     sb.from('businesses').select('*, subscriptions(paket, status, berakhir, mulai)').eq('user_id', auth.user.id).single(),
   ]);
-  if (!business || !profile) redirect('/masuk');
+  if (!profile) redirect('/masuk');
+  if (profile.role === 'admin') redirect('/admin');
+  if (!business) redirect('/masuk');
 
   const { subscriptions, ...biz } = business as Business & { subscriptions: Subscription };
   const sub = subscriptions;

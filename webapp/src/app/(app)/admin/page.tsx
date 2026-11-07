@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getAccount } from '@/lib/session';
+import { getRole } from '@/lib/session';
 import { supabaseAdmin } from '@/lib/supabase/server';
 import * as F from '@/lib/format';
 import { ConfirmButton } from '@/components/client';
@@ -15,8 +15,8 @@ const JENIS: Record<string, string> = { ai: 'API AI', impor: 'Impor', pembayaran
 
 /** F11. Membaca lintas usaha dengan secret key, jadi akses dicek di sini (role admin), bukan oleh RLS. */
 export default async function Page({ searchParams }: PageProps<'/admin'>) {
-  const [acc, sp] = await Promise.all([getAccount(), searchParams]);
-  if (acc.role !== 'admin') notFound();
+  const [who, sp] = await Promise.all([getRole(), searchParams]);
+  if (who.role !== 'admin') notFound();
   const db = supabaseAdmin();
   const q = (str(sp.q) ?? '').trim();
   const jenis = str(sp.jenis) ?? '';
