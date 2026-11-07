@@ -24,7 +24,7 @@ async function readCsv(file: File): Promise<Table> {
   } catch {
     text = new TextDecoder('windows-1252').decode(buf);
   }
-  text = text.replace(/^﻿/, '');
+  text = text.replace(/^\uFEFF/, '');
   if (!text.trim()) throw new FileError('File kosong.');
   const res = Papa.parse<Record<string, string>>(text, {
     header: true, delimiter: detectDelimiter(text), skipEmptyLines: true, transformHeader: (h) => h.trim(),

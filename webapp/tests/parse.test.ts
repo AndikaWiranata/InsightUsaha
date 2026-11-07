@@ -6,7 +6,7 @@ import Papa from 'papaparse';
 import { cleanRows, dropBlankRows, missingRequired, parseDate, parseNumber, suggestMapping, type Cell } from '@/lib/import/parse';
 
 function fromCsv(text: string) {
-  const res = Papa.parse<Record<string, string>>(text.replace(/^﻿/, ''), { header: true, skipEmptyLines: true });
+  const res = Papa.parse<Record<string, string>>(text.replace(/^\uFEFF/, ''), { header: true, skipEmptyLines: true });
   const baris = dropBlankRows(res.data as Record<string, Cell>[]);
   return { kolom: res.meta.fields ?? [], baris };
 }
