@@ -9,6 +9,7 @@ create table auth.users (id uuid primary key, email text, raw_user_meta_data jso
 create function auth.uid() returns uuid language sql stable as
   $$ select nullif(current_setting('test.uid', true), '')::uuid $$;
 create role authenticated;
+create role anon;
 `;
 
 export async function freshDb(): Promise<PGlite> {
