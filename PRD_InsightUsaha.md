@@ -1,6 +1,11 @@
-# PRD InsightUsaha — Web App
+# PRD InsightUsaha: Web App
 
-Versi: 6 November 2026
+Versi: 7 November 2026
+
+| Versi | Tanggal | Perubahan |
+| --- | --- | --- |
+| 1 | 6 November 2026 | Versi awal: Laravel, FastAPI, MySQL, hosting VPS |
+| 2 | 7 November 2026 | Stack diganti ke Next.js + Supabase di Vercel (paket gratis, tanpa biaya hosting); API LLM ditetapkan Google Gemini; ditambah F12 Tanya Data (chatbot) |
 
 ## 0. Instruksi untuk AI Agent
 
@@ -8,7 +13,7 @@ Versi: 6 November 2026
 - Patuhi tech stack di bagian 7 kecuali diminta lain.
 - Semua teks antarmuka (UI) dalam **bahasa Indonesia**.
 - Setiap fitur dianggap selesai hanya jika semua **acceptance criteria**-nya terpenuhi. Tulis test untuk tiap acceptance criteria jika memungkinkan.
-- Setiap query data pengguna **wajib dibatasi per `business_id`** (multi-tenant).
+- Setiap query data pengguna **wajib dibatasi per `business_id`** (multi-tenant), ditegakkan dengan Row Level Security di Supabase, bukan hanya di kode aplikasi.
 - Jangan pernah mengirim data mentah transaksi ke API LLM; kirim hanya hasil agregat.
 - Jika ada hal yang tidak dijelaskan di PRD, pilih solusi paling sederhana dan catat asumsinya.
 
@@ -18,7 +23,7 @@ InsightUsaha adalah aplikasi web SaaS yang mengubah data penjualan UMKM kuliner 
 
 **Masalah.** UMKM sudah punya data penjualan (dari aplikasi kasir atau Excel), tetapi tidak pernah menganalisisnya. Keputusan soal menu, promo, bundling, dan stok masih diambil berdasarkan perasaan, karena pemilik usaha tidak punya waktu maupun keahlian analisis data.
 
-**Solusi.** Pengguna mengunggah file penjualan, lalu sistem otomatis menampilkan dashboard, produk yang naik dan turun, jam ramai, rekomendasi bundling (Apriori), klasifikasi menu (Menu Engineering), dan ringkasan AI.
+**Solusi.** Pengguna mengunggah file penjualan, lalu sistem otomatis menampilkan dashboard, produk yang naik dan turun, jam ramai, rekomendasi bundling (Apriori), klasifikasi menu (Menu Engineering), ringkasan AI, dan tanya jawab langsung soal data penjualan.
 
 **Tujuan produk**
 
@@ -56,10 +61,11 @@ Pengguna utama adalah pemilik UMKM kuliner mikro-kecil di Surabaya yang mencatat
 | US-11 | Pemilik UMKM | berlangganan paket Pro dengan QRIS/e-wallet | membuka semua fitur | Should |
 | US-12 | Admin | melihat daftar pengguna dan status langganan | bisa mengelola layanan | Should |
 | US-13 | Pemilik UMKM | menerima ringkasan mingguan via email/WhatsApp | tidak perlu membuka aplikasi | Could |
+| US-14 | Pemilik UMKM | bertanya langsung soal data penjualan dengan kalimat sendiri | tidak perlu membaca semua grafik untuk menemukan jawaban | Should |
 
 ## 3. Ruang Lingkup
 
-MVP mencakup semua fitur prioritas Must dan Should (US-01 sampai US-12). Fitur Could dan integrasi otomatis dikerjakan setelah uji coba.
+MVP mencakup semua fitur prioritas Must dan Should (US-01 sampai US-12, dan US-14). Fitur Could dan integrasi otomatis dikerjakan setelah uji coba.
 
 **Masuk MVP**
 
@@ -68,6 +74,7 @@ MVP mencakup semua fitur prioritas Must dan Should (US-01 sampai US-12). Fitur C
 - Dashboard penjualan, produk naik/turun, pola waktu ramai
 - Rekomendasi bundling (Apriori) dan klasifikasi menu (Menu Engineering)
 - Ringkasan dan saran AI berbahasa Indonesia
+- Tanya Data: chatbot tanya jawab soal hasil analisis
 - Laporan PDF, paket langganan Gratis/Pro, pembayaran via payment gateway
 - Panel admin sederhana
 
@@ -101,6 +108,7 @@ Acceptance criteria:
 - Menyediakan template unduhan (lihat bagian 7 untuk kolomnya).
 - Pemetaan kolom: jika nama kolom berbeda dari template, pengguna memilih kolom mana yang berisi tanggal, produk, jumlah, dan harga.
 - Membersihkan data: hapus baris kosong dan duplikat, menyamakan penulisan nama produk (huruf besar/kecil, spasi).
+- File dibaca dan dibersihkan di browser, lalu baris valid dikirim bertahap ke basis data. File asli tidak disimpan di server.
 - Menampilkan ringkasan hasil impor: jumlah baris valid, baris ditolak beserta alasannya, dan rentang tanggal data.
 
 Acceptance criteria:
@@ -142,7 +150,7 @@ Acceptance criteria:
 
 ### F6. Rekomendasi Bundling (US-07)
 
-- Algoritma Apriori pada data per transaksi (wajib ada kolom ID transaksi).
+- Algoritma Apriori untuk pasangan 2 produk pada data per transaksi (wajib ada kolom ID transaksi), dihitung dengan fungsi SQL di Postgres.
 - Menampilkan pasangan produk dengan support, confidence, dan lift, diurutkan berdasarkan lift.
 - Default: minimum support 1%, minimum confidence 30%, hanya aturan dengan lift > 1. Nilai bisa diubah pengguna di pengaturan lanjutan.
 - Setiap aturan ditulis ulang dalam kalimat, misalnya "45% pembeli Croissant juga membeli Kopi Susu".
@@ -166,7 +174,7 @@ Acceptance criteria:
 
 ### F8. Ringkasan dan Saran AI (US-08)
 
-- Sistem mengirim **hasil agregat** (bukan data mentah transaksi) ke API LLM.
+- Sistem mengirim **hasil agregat** (bukan data mentah transaksi) ke API LLM (Google Gemini).
 - Keluaran: 3–5 temuan utama dan 3 saran tindakan, maksimal ±150 kata, bahasa Indonesia santai.
 - Setiap angka dalam ringkasan harus berasal dari hasil analisis; prompt melarang model mengarang angka.
 - Ringkasan disimpan per periode sehingga tidak dibuat ulang setiap halaman dibuka.
@@ -188,7 +196,7 @@ Acceptance criteria:
 | Gratis | Rp0 | 1 unggahan/bulan, data 3 bulan, hanya F3 dan F4 |
 | Pro | Rp49.000/bulan | Semua fitur F2–F9, unggahan tanpa batas |
 
-- Pembayaran via payment gateway (QRIS, e-wallet, virtual account); status langganan diperbarui otomatis lewat webhook.
+- Pembayaran via payment gateway Midtrans Snap (QRIS, e-wallet, virtual account); status langganan diperbarui otomatis lewat webhook.
 - Pengingat perpanjangan H-3 via email; jika tidak diperpanjang, akun turun ke paket Gratis tanpa menghapus data.
 
 ### F11. Panel Admin (US-12)
@@ -197,15 +205,28 @@ Acceptance criteria:
 - Statistik: pengguna aktif, pelanggan berbayar, pendapatan bulan ini.
 - Log error impor dan kegagalan API AI.
 
+### F12. Tanya Data (US-14)
+
+- Panel chatbot tersedia di semua halaman setelah masuk, untuk paket Gratis dan Pro.
+- Jawaban hanya berdasarkan hasil analisis periode yang sedang dibuka. Konteks yang dikirim ke API LLM mengikuti aturan F8: hanya hasil agregat.
+- Setiap angka di jawaban dicocokkan dengan angka hasil analisis. Jawaban yang memuat angka di luar hasil analisis tidak ditampilkan; pengguna diminta bertanya dengan cara lain.
+- Riwayat percakapan disimpan per sesi (12 pesan terakhir) dan bisa dihapus pengguna.
+
+Acceptance criteria:
+
+- [ ] Jika API AI gagal, panel menampilkan pesan gagal dengan tombol kirim ulang, dan halaman lain tetap berfungsi.
+- [ ] Pengguna paket Gratis tidak mendapat jawaban dari data di luar 3 bulan terakhir.
+- [ ] Pada 20 sampel pertanyaan uji, tidak ada angka di jawaban yang berbeda dari hasil analisis.
+
 ## 5. Kebutuhan Nonfungsional
 
 | Aspek | Kebutuhan |
 | --- | --- |
-| Kinerja | Halaman dimuat < 3 detik; file 50.000 baris selesai diproses < 60 detik (diproses di latar belakang dengan indikator progres) |
-| Kapasitas | Melayani ±200 pengguna aktif pada tahap awal di 1 VPS |
-| Keamanan | HTTPS, kata sandi di-hash (bcrypt), proteksi CSRF, batas percobaan login, setiap query dibatasi per `business_id` |
+| Kinerja | Halaman dimuat < 3 detik; file 50.000 baris selesai diproses < 60 detik (dibaca di browser, dikirim bertahap dengan indikator progres) |
+| Kapasitas | Melayani ±200 pengguna aktif pada tahap awal dalam batas paket gratis Vercel dan Supabase |
+| Keamanan | HTTPS, autentikasi Supabase Auth (kata sandi di-hash oleh Supabase), batas percobaan login, Row Level Security per `business_id` di setiap tabel, kunci rahasia (service role, API AI, payment gateway) hanya di server |
 | Privasi data | Hanya data agregat yang dikirim ke API AI; kebijakan privasi mengacu UU No. 27/2022 tentang Pelindungan Data Pribadi; pengguna bisa menghapus akun beserta datanya |
-| Ketersediaan | Target uptime 99% selama jam operasional; backup basis data harian, disimpan 7 hari |
+| Ketersediaan | Mengikuti paket gratis Vercel dan Supabase; project Supabase gratis yang lama tidak dipakai bisa dijeda dan perlu dipulihkan dari dashboard sebelum demo |
 | Kegunaan | Responsif di HP (lebar layar 360 px ke atas); seluruh antarmuka berbahasa Indonesia; skor SUS ≥ 68 |
 | Kompatibilitas | Chrome, Edge, dan Safari versi terbaru |
 | Pemeliharaan | Kode di GitHub dengan code review; log error terpusat |
@@ -243,24 +264,22 @@ Jika data tidak valid, pengguna diarahkan ke pemetaan kolom lalu mengunggah ulan
 | Langganan | /langganan | Paket aktif, upgrade, riwayat pembayaran | Pengguna |
 | Pengaturan | /pengaturan | Profil, kata sandi, hapus akun | Pengguna |
 | Admin | /admin | Pengguna, langganan, statistik, log error | Admin |
+| Tanya Data | panel di semua halaman pengguna | Chatbot tanya jawab soal hasil analisis | Pengguna |
 
 ## 7. Data, Arsitektur, dan Tech Stack
 
-Web app Laravel menangani pengguna, sedangkan analisis berat dijalankan layanan Python terpisah lewat antrean job supaya halaman tidak macet saat file besar diproses.
+Seluruh aplikasi berjalan di dua layanan dengan paket gratis: Next.js di Vercel untuk halaman dan API, Supabase untuk autentikasi, basis data, dan email akun. Tidak ada server yang harus disewa atau dirawat. Analisis dijalankan sebagai fungsi SQL di Postgres, dekat dengan datanya, sehingga tidak perlu layanan Python terpisah atau antrean job.
 
 ```mermaid
 flowchart LR
-    U[Browser pengguna<br/>pemilik UMKM dan admin] <-- HTTPS --> W[Web app Laravel<br/>UI Blade + Chart.js<br/>Auth, unggah file, dashboard<br/>Laporan PDF, langganan, admin]
-    W <--> DB[(MySQL<br/>pengguna, transaksi, hasil)]
-    W --> Q[Antrean job / queue]
-    Q -- job analisis --> AN[Layanan analitik FastAPI<br/>pandas: bersihkan data, tren<br/>mlxtend: bundling Apriori<br/>pola waktu, Menu Engineering]
-    AN -- simpan hasil --> DB
-    W --> LLM[API LLM<br/>ringkasan dan saran AI]
-    W <--> PG[Payment gateway<br/>QRIS, e-wallet, webhook]
-    W --> EM[Layanan email<br/>verifikasi, pengingat]
+    U[Browser pengguna<br/>pemilik UMKM dan admin<br/>baca & bersihkan file Excel/CSV] <-- HTTPS --> W[Next.js di Vercel<br/>halaman, API route<br/>ringkasan AI, Tanya Data<br/>PDF, webhook pembayaran]
+    U -- kirim baris bertahap --> SB
+    W <--> SB[(Supabase<br/>Postgres + Row Level Security<br/>fungsi SQL analisis & Apriori<br/>Auth & email akun)]
+    W --> LLM[Google Gemini<br/>hanya hasil agregat]
+    W <--> PG[Midtrans<br/>QRIS, e-wallet, webhook]
 ```
 
-Web app menyimpan file dan membuat job; layanan analitik mengambil job, menulis hasil ke MySQL, lalu web app memanggil API LLM untuk ringkasan dari hasil agregat tersebut.
+Browser membaca file, membersihkannya, lalu mengirim baris valid ke Supabase secara bertahap. Halaman analisis memanggil fungsi SQL untuk periode yang dipilih; hasilnya disimpan sebagai cache. Ringkasan AI dan Tanya Data dibuat di API route Next.js dari hasil agregat tersebut, sehingga API key Gemini tidak pernah sampai ke browser.
 
 **Format file unggah (template)**
 
@@ -285,29 +304,34 @@ tanggal,jam,id_transaksi,nama_produk,kategori,jumlah,harga_satuan
 
 | Entitas | Atribut utama | Relasi |
 | --- | --- | --- |
-| users | id, nama, email, password_hash, role (owner/admin) | 1 user punya 1 business |
-| businesses | id, user_id, nama_usaha, kota, jenis_usaha | punya banyak uploads, products, transactions |
+| auth.users (dikelola Supabase Auth) | id, email, password terenkripsi, status verifikasi | 1 user punya 1 profile |
+| profiles | id (= auth.users.id), nama, role (owner/admin) | 1 profile punya 1 business |
+| businesses | id, user_id, nama_usaha, kota, jenis_usaha, jam_buka | punya banyak uploads, products, transactions |
 | uploads | id, business_id, nama_file, jumlah_baris_valid, jumlah_baris_ditolak, status, dibuat_pada | punya banyak transactions |
 | products | id, business_id, nama, kategori, hpp | dirujuk transaction_items |
 | transactions | id, business_id, upload_id, kode_transaksi, waktu | punya banyak transaction_items |
-| transaction_items | id, transaction_id, product_id, jumlah, harga_satuan | — |
-| analysis_results | id, business_id, jenis (tren/waktu/bundling/menu), periode_mulai, periode_selesai, hasil_json | dibuat per job analisis |
+| transaction_items | id, transaction_id, product_id, jumlah, harga_satuan | (tidak ada) |
+| analysis_results | id, business_id, jenis (tren/waktu/bundling/menu), periode_mulai, periode_selesai, hasil_json | cache hasil fungsi SQL per periode |
 | ai_summaries | id, business_id, periode, isi, umpan_balik | merujuk analysis_results periode yang sama |
 | subscriptions | id, business_id, paket, mulai, berakhir, status | punya banyak payments |
-| payments | id, subscription_id, jumlah, metode, status, ref_gateway | — |
+| payments | id, subscription_id, jumlah, metode, status, ref_gateway | (tidak ada) |
+| error_logs | id, business_id, jenis (impor/ai/pembayaran), pesan, dibuat_pada | dibaca panel admin |
+
+Setiap tabel milik usaha memakai Row Level Security: pengguna hanya bisa membaca dan menulis baris dengan `business_id` miliknya. Admin membaca lintas usaha hanya lewat API route server.
 
 **Tech stack**
 
 | Lapisan | Pilihan | Alasan |
 | --- | --- | --- |
-| Web app | Laravel (PHP) + Blade + Tailwind CSS | Umum diajarkan, autentikasi dan queue sudah tersedia |
-| Grafik | Chart.js | Ringan, cukup untuk line, bar, heatmap |
-| Analitik | Python FastAPI + pandas + mlxtend | Apriori siap pakai, mudah diuji terhadap Excel |
-| Basis data | MySQL | Relasional, familiar bagi tim |
-| Antrean | Laravel Queue (driver database/Redis) | Proses file besar di latar belakang |
-| AI | API LLM (penyedia ditentukan) | Ringkasan bahasa Indonesia |
-| Pembayaran | Payment gateway lokal (QRIS, e-wallet) | Webhook status pembayaran |
-| Hosting | VPS + Nginx + SSL Let's Encrypt | Murah, sesuai anggaran Rp350.000/bulan |
+| Web app | Next.js (App Router, TypeScript) + Tailwind CSS | Satu bahasa untuk halaman dan API; deploy gratis di Vercel tanpa server |
+| Grafik | Chart.js | Ringan, cukup untuk line dan bar; heatmap dibuat sebagai tabel HTML |
+| Basis data & auth | Supabase (Postgres, Auth, Row Level Security) | Paket gratis; login, verifikasi email, dan pemisahan data antar usaha sudah tersedia |
+| Analitik | Fungsi SQL (PL/pgSQL) di Postgres | Agregasi dekat dengan data, tanpa layanan Python; Apriori 2-produk diuji terhadap hasil mlxtend |
+| Impor file | SheetJS di browser | Excel/CSV dibaca di perangkat pengguna, tidak terkena batas ukuran request di Vercel, tanpa antrean |
+| AI | Google Gemini (gemini-2.5-flash) | Ringkasan dan tanya jawab bahasa Indonesia; ada kuota gratis |
+| PDF | Pembuatan PDF di browser | Tidak membebani fungsi server |
+| Pembayaran | Midtrans Snap (QRIS, e-wallet, VA) | Webhook status pembayaran; mode sandbox untuk uji coba |
+| Hosting | Vercel (paket Hobby) + Supabase (paket Free) | Gratis tanpa kartu kredit, cukup untuk tugas dan uji coba ke 10 UMKM |
 
 ## 8. Metrik, Milestone, Risiko, dan Pertanyaan Terbuka
 
@@ -323,11 +347,11 @@ tanggal,jam,id_transaksi,nama_produk,kategori,jumlah,harga_satuan
 
 **Milestone (sprint 2 minggu, 4 bulan)**
 
-1. Sprint 1 (minggu 1–2): analisis kebutuhan, wireframe, ERD, setup repositori dan server.
+1. Sprint 1 (minggu 1–2): analisis kebutuhan, wireframe, ERD, setup repositori, project Supabase, dan Vercel.
 2. Sprint 2 (minggu 3–4): F1 autentikasi, F2 unggah dan validasi data.
 3. Sprint 3 (minggu 5–6): F3 dashboard, F4 produk naik/turun.
 4. Sprint 4 (minggu 7–8): F5 pola waktu, F6 bundling Apriori.
-5. Sprint 5 (minggu 9–10): F7 klasifikasi menu, F8 ringkasan AI.
+5. Sprint 5 (minggu 9–10): F7 klasifikasi menu, F8 ringkasan AI, F12 Tanya Data.
 6. Sprint 6 (minggu 11–12): F9 PDF, F10 pembayaran, F11 admin, deploy.
 7. Sprint 7 (minggu 13–14): black box testing, uji coba ke 10 UMKM, uji SUS.
 8. Sprint 8 (minggu 15–16): perbaikan dari hasil uji, peluncuran, evaluasi.
@@ -342,10 +366,14 @@ tanggal,jam,id_transaksi,nama_produk,kategori,jumlah,harga_satuan
 | Biaya API AI membengkak | Margin habis | Ringkasan disimpan per periode, batasi jumlah generate per bulan |
 | UMKM enggan membagikan data penjualan | Adopsi rendah | Kebijakan privasi jelas, tidak ada data mentah ke pihak ketiga, opsi hapus data |
 | Waktu pengembangan tidak cukup | Fitur tidak selesai | Kerjakan Must dulu; F7, F9, F10 bisa dipangkas |
+| Batas paket gratis Vercel atau Supabase terlampaui | Aplikasi lambat atau berhenti saat uji coba | Analisis di SQL dan di-cache per periode, impor dibaca di browser; pantau pemakaian di dashboard kedua layanan |
+| Project Supabase gratis dijeda karena lama tidak dipakai | Aplikasi tidak bisa dibuka saat demo | Buka aplikasi sehari sebelum demo; pulihkan project dari dashboard Supabase bila dijeda |
+| Kuota gratis API Gemini habis | Ringkasan dan Tanya Data tidak tersedia | Halaman tetap tampil tanpa ringkasan (F8); ringkasan di-cache per periode; batasi jumlah pertanyaan per menit |
 
 **Pertanyaan terbuka**
 
 - [ ] Aplikasi kasir apa yang paling banyak dipakai UMKM uji coba? Template impor khusus dibuat untuk itu.
 - [ ] Harga Rp49.000 sudah tervalidasi lewat survei, atau perlu diuji dengan dua pilihan harga?
-- [ ] Penyedia LLM dan payment gateway mana yang dipakai (biaya dan kemudahan integrasi)?
+- [x] Penyedia LLM dan payment gateway: Google Gemini dan Midtrans (diputuskan di versi 2).
+- [ ] Apakah kuota gratis Gemini cukup untuk uji coba ke 10 UMKM, atau perlu batas pertanyaan harian per pengguna?
 - [ ] Apakah klasifikasi menu (F7) tetap masuk MVP mengingat pengguna harus mengisi HPP?
