@@ -17,7 +17,10 @@ Butuh Node 20+ dan satu project Supabase.
    npm install
    npm run dev                         # http://localhost:3000
    node scripts/demo-account.mjs pro   # akun demo terverifikasi: demo@insightusaha.id / demo12345
+   node scripts/admin-account.mjs      # akun admin admin@insightusaha.id, kata sandi acak dicetak sekali
    ```
+   Kata sandi admin bisa ditentukan sendiri: `node scripts/admin-account.mjs <email> <kata-sandi>`. Menjalankan ulang
+   skrip menyetel ulang kata sandinya.
 4. Masuk, buka **Data penjualan**, unggah file. Data contoh: `webapp/tests/fixtures/contoh-penjualan.csv`.
 
 | Variabel | Fungsi |
