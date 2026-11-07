@@ -16,12 +16,14 @@ Butuh Node 20+ dan satu project Supabase.
    cd webapp
    npm install
    npm run dev                         # http://localhost:3000
-   node scripts/demo-account.mjs pro   # akun demo terverifikasi: demo@insightusaha.id / demo12345
+   node --experimental-strip-types scripts/demo-account.mjs pro --isi   # akun demo Pro + data contoh + HPP
    node scripts/admin-account.mjs      # akun admin: admin@insightusaha.id / admin12345
    ```
    Kata sandi admin bisa ditentukan sendiri: `node scripts/admin-account.mjs <email> <kata-sandi>`. Menjalankan ulang
    skrip menyetel ulang kata sandinya. Ganti kata sandi bawaan sebelum aplikasi dipakai orang lain.
-4. Masuk, buka **Data penjualan**, unggah file. Data contoh: `webapp/tests/fixtures/contoh-penjualan.csv`.
+4. Masuk dengan akun demo `demo@insightusaha.id` / `demo12345` (paket Pro 1 tahun, sudah berisi data 3 bulan dan HPP),
+   atau buat akun baru lalu unggah file di **Data penjualan**. Data contoh: `webapp/tests/fixtures/contoh-penjualan.csv`.
+   Tanpa `--isi`, akun demo dibuat kosong.
 
 | Variabel | Fungsi |
 | --- | --- |
@@ -59,7 +61,9 @@ node scripts/verify-supabase.mjs       # cek skema, RLS, dan impor di Supabase s
 node scripts/clickthrough.mjs <folder> # klik nyata di Edge headless: 67 pemeriksaan, termasuk HP 360 px dan tema gelap
 ```
 
-`clickthrough.mjs` butuh server berjalan (`npm run build && npm start`) dan akun demo.
+`clickthrough.mjs` butuh server berjalan (`npm run build && npm start`) dan akun demo kosong
+(`node scripts/demo-account.mjs pro`), karena uji ini mengunggah data contoh sendiri lewat browser.
+Setelahnya jalankan lagi dengan `--isi` agar akun demo kembali lengkap dengan HPP.
 
 `tests/fixtures/python-reference.json` adalah hasil acuan dari versi Laravel + Python sebelumnya (dihapus dari repo,
 masih ada di riwayat git). Tes `parity.test.ts` memastikan fungsi SQL menghasilkan angka yang sama.
